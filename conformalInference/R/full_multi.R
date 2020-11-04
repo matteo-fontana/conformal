@@ -114,8 +114,8 @@
 #' @example examples/ex.conformal.pred.R
 #' @export conformal.multi.pred
 
-conformal.multi.pred = function(x, y, x0, train.fun, predict.fun, ncm.method=c('l2','mahalanobis','max'), alpha=0.1, w=NULL,
-  mad.train.fun=NULL, mad.predict.fun=NULL, num.grid.pts.dim=100, grid.factor=1.25,
+conformal.multi.pred = function(x, y, x0, train.fun, predict.fun, ncm.method=c('l2','mahalanobis','max'),
+  num.grid.pts.dim=100, grid.factor=1.25,
   verbose=FALSE) {
 
   # Set up data
@@ -125,7 +125,7 @@ conformal.multi.pred = function(x, y, x0, train.fun, predict.fun, ncm.method=c('
   n = nrow(x)
   p = ncol(x)
   x0 = matrix(x0,ncol=p)
-  n0 = nrow(x0)
+  n0 = 1
   ncm.method=match.arg(ncm.method)
   
   
@@ -134,14 +134,14 @@ conformal.multi.pred = function(x, y, x0, train.fun, predict.fun, ncm.method=c('
  #            predict.fun=predict.fun,mad.train.fun=mad.train.fun,
   #           mad.predict.fun=mad.predict.fun)
   if (length(num.grid.pts.dim) != 1 || !is.numeric(num.grid.pts.dim)
-      || num.grid.pts <= 1 || num.grid.pts >= 1000
-      || round(num.grid.pts) != num.grid.pts) {
+      || num.grid.pts.dim <= 1 || num.grid.pts.dim >= 1000
+      || round(num.grid.pts.dim) != num.grid.pts.dim) {
     stop("num.grid.pts must be an integer between 1 and 1000")
   }
   check.pos.num(grid.factor)
 
   # Check the weights
-  if (is.null(w)) w = rep(1,n+n0)
+  
   
   # Users may pass in a string for the verbose argument
   if (verbose == TRUE) txt = ""
@@ -156,51 +156,42 @@ conformal.multi.pred = function(x, y, x0, train.fun, predict.fun, ncm.method=c('
   out = train.fun(x,y) 
   fit = matrix(predict.fun(out,x),nrow=n)
   pred = matrix(predict.fun(out,x0),nrow=n0)
-  m = ncol(pred)
   
   # Trial values for y, empty lo, up matrices to fill
-  ymax = max(abs(y))
-  yvals = seq(-grid.factor*ymax, grid.factor*ymax,length=num.grid.pts)
-  lo = up = matrix(0,n0,m)
-  qvals = rvals = matrix(0,num.grid.pts,m)
+  
+  ymax = apply(abs(y),2,max)
+  y_marg = lapply(ymax,function(value){seq(-grid.factor*value, grid.factor*value,length=num.grid.pts.dim)})
+  yvals = as.matrix(expand.grid(y_marg))  
+  pvals = vector(mode='numeric',length=num.grid.pts.dim^q)
   xx = rbind(x,rep(0,p))
     
-  for (i in 1:n0) {
-    if (verbose) {
-      cat(sprintf("\r%sProcessing prediction point %i (of %i) ...",txt,i,n0))
-      flush.console()
-    }
+
+
     
-    xx[n+1,] = x0[i,]
-    ww = c(w[1:n],w[n+i])
+    xx[n+1,] = x0
 
     # Refit for each point in yvals, compute conformal p-value
-    for (j in 1:num.grid.pts) {
-      yy = c(y,yvals[j])
-      if (j==1) out = train.fun(xx,yy)
-      else out = train.fun(xx,yy,out)
-      r = abs(yy - matrix(predict.fun(out,xx),nrow=n+1))
-
-      # Local scoring?
-      if (!is.null(mad.train.fun) && !is.null(mad.predict.fun)) {
-        for (l in 1:m) {
-          if (j==1 && l==1) out.mad = mad.train.fun(xx,r[,l])
-          else out.mad = mad.train.fun(xx,r[,l],out.mad)
-          r[,l] = r[,l] / mad.predict.fun(out.mad,xx)
-        }
+    for (j in 1:(num.grid.pts.dim^q)) {
+      if (verbose) {
+        cat(sprintf("\r%sProcessing grid point %i (of %i) ...",txt,j,num.grid.pts.dim^q))
+        flush.console()
       }
-
-      qvals[j,] = apply(r,2,weighted.quantile,prob=1-alpha,w=ww)
-      rvals[j,] = r[n+1,]
+      yy = rbind(y,yvals[j,])
+      if (j==1) {out = train.fun(xx,yy)
+      }else{ out = train.fun(xx,yy,out)}
+      r = yy - matrix(predict.fun(out,xx),nrow=n+1)
+      switch(ncm.method,
+             "l2"={ncm=rowSums(r^2)},
+             "mahalanobis"={ncm=mahalanobis(r,colMeans(r),cov(r))},
+             "max"={ncm=apply(abs(r), 1, max)},
+             "scaled.max"={r=r/apply(r,2,var);ncm=apply(abs(r),1,max)},
+             )
+      
+      pvals[j] = sum(ncm>=ncm[n+1])/(n+1)
+      
     }
 
-    for (l in 1:m) {
-      int = grid.interval(yvals,rvals[,l],qvals[,l])
-      lo[i,l] = int$lo
-      up[i,l] = int$up
-    }
-  }
   if (verbose) cat("\n")
   
-  return(list(pred=pred,lo=lo,up=up,fit=fit))
+  pval_matrix=data.frame(cbind(yvals,p_value=pvals))
 }

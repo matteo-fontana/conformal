@@ -4,9 +4,20 @@
 \alias{conformal.pred.split}
 \title{Split conformal prediction intervals.}
 \usage{
-conformal.pred.split(x, y, x0, train.fun, predict.fun, alpha = 0.1,
-  w = NULL, mad.train.fun = NULL, mad.predict.fun = NULL,
-  split = NULL, seed = NULL, verbose = FALSE)
+conformal.pred.split(
+  x,
+  y,
+  x0,
+  train.fun,
+  predict.fun,
+  alpha = 0.1,
+  w = NULL,
+  mad.train.fun = NULL,
+  mad.predict.fun = NULL,
+  split = NULL,
+  seed = NULL,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{x}{Matrix of features, of dimension (say) n x p.}
