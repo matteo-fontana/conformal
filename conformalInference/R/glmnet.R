@@ -52,7 +52,7 @@ NULL
 #' @rdname glmnet.funs
 #' @export elastic.funs
 
-elastic.funs = function(gamma=0.5, standardize=TRUE, intercept=TRUE, lambda=NULL,
+elastic.funs = function(gamma=0.5,family = c("gaussian", "binomial", "poisson", "multinomial","cox", "mgaussian"), standardize=TRUE, intercept=TRUE, lambda=NULL,
   nlambda=50, lambda.min.ratio=1e-4, cv=FALSE, cv.rule=c("min","1se")) {
 
   # Check for glmnet
@@ -80,12 +80,13 @@ elastic.funs = function(gamma=0.5, standardize=TRUE, intercept=TRUE, lambda=NULL
   check.pos.num(lambda.min.ratio)
   check.bool(cv)
   cv.rule = match.arg(cv.rule)
+  family = match.arg(family)
 
   # They want training to be done over a sequence of lambdas, and prediction
   # at the lambda chosen by either the min CV rule or 1se CV rule
   if (cv) {
     train.fun = function(x,y,out=NULL) {
-      return(cv.glmnet(x,y,alpha=gamma,nlambda=nlambda,
+      return(cv.glmnet(x,y,alpha=gamma,nlambda=nlambda, family=family,
                        lambda.min.ratio=lambda.min.ratio,lambda=lambda,
                        standardize=standardize,intercept=intercept))
     }
@@ -107,7 +108,7 @@ elastic.funs = function(gamma=0.5, standardize=TRUE, intercept=TRUE, lambda=NULL
   # over the same sequence
   else {
     train.fun = function(x,y,out=NULL) {
-      return(glmnet(x,y,alpha=gamma,nlambda=nlambda,
+      return(glmnet(x,y,alpha=gamma,nlambda=nlambda, family=family,
                     lambda.min.ratio=lambda.min.ratio,lambda=lambda,
                     standardize=standardize,intercept=intercept))
     }
@@ -142,10 +143,10 @@ elastic.funs = function(gamma=0.5, standardize=TRUE, intercept=TRUE, lambda=NULL
 #' @rdname glmnet.funs
 #' @export lasso.funs
 
-lasso.funs = function(standardize=TRUE, intercept=TRUE, lambda=NULL,
+lasso.funs = function(standardize=TRUE, intercept=TRUE, lambda=NULL,family = c("gaussian", "binomial", "poisson", "multinomial","cox", "mgaussian"), 
   nlambda=50, lambda.min.ratio=1e-4, cv=FALSE, cv.rule=c("min","1se")) {
 
-  return(elastic.funs(gamma=1,
+  return(elastic.funs(gamma=1, family=family,
                       standardize=standardize,intercept=intercept,
                       lambda=lambda,nlambda=nlambda,
                       lambda.min.ratio=lambda.min.ratio,
@@ -155,10 +156,10 @@ lasso.funs = function(standardize=TRUE, intercept=TRUE, lambda=NULL,
 #' @rdname glmnet.funs
 #' @export ridge.funs
 
-ridge.funs = function(standardize=TRUE, intercept=TRUE, lambda=NULL,
+ridge.funs = function(standardize=TRUE, intercept=TRUE, lambda=NULL, family = c("gaussian", "binomial", "poisson", "multinomial","cox", "mgaussian"),
   nlambda=50, lambda.min.ratio=1e-4, cv=FALSE, cv.rule=c("min","1se")) {
 
-  return(elastic.funs(gamma=0,
+  return(elastic.funs(gamma=0,family=family,
                       standardize=standardize,intercept=intercept,
                       lambda=lambda,nlambda=nlambda,
                       lambda.min.ratio=lambda.min.ratio,
