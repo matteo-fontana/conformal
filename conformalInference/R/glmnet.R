@@ -110,7 +110,7 @@ elastic.funs = function(gamma=0.5,family = c("gaussian", "binomial", "poisson", 
     train.fun = function(x,y,out=NULL) {
       return(glmnet(x,y,alpha=gamma,nlambda=nlambda, family=family,
                     lambda.min.ratio=lambda.min.ratio,lambda=lambda,
-                    standardize=standardize,intercept=intercept,penalty.factor = penalty.factor)))
+                    standardize=standardize,intercept=intercept,penalty.factor = penalty.factor))
     }
     
     predict.fun = function(out,newx) {
