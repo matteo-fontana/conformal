@@ -113,6 +113,7 @@
 #'   Tibshirani (2019) for the weighted extension.
 #' @example examples/ex.conformal.pred.R
 #' @export conformal.multi.pred
+#' @importFrom progress pb
 
 conformal.multi.pred = function(x, y, x0, train.fun, predict.fun, ncm.method=c('l2','mahalanobis','max'),
   num.grid.pts.dim=100, grid.factor=1.25,

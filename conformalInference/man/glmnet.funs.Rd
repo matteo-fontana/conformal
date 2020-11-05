@@ -16,7 +16,9 @@ elastic.funs(
   nlambda = 50,
   lambda.min.ratio = 1e-04,
   cv = FALSE,
-  cv.rule = c("min", "1se")
+  cv.rule = c("min", "1se"),
+  penalty.factor = rep(1, nvars),
+  ...
 )
 
 lasso.funs(
@@ -27,7 +29,9 @@ lasso.funs(
   nlambda = 50,
   lambda.min.ratio = 1e-04,
   cv = FALSE,
-  cv.rule = c("min", "1se")
+  cv.rule = c("min", "1se"),
+  penalty.factor = rep(1, nvars),
+  ...
 )
 
 ridge.funs(
@@ -38,7 +42,9 @@ ridge.funs(
   nlambda = 50,
   lambda.min.ratio = 1e-04,
   cv = FALSE,
-  cv.rule = c("min", "1se")
+  cv.rule = c("min", "1se"),
+  penalty.factor = rep(1, nvars),
+  ...
 )
 }
 \arguments{
