@@ -53,7 +53,7 @@ NULL
 #' @export elastic.funs
 
 elastic.funs = function(gamma=0.5,family = c("gaussian", "binomial", "poisson", "multinomial","cox", "mgaussian"), standardize=TRUE, intercept=TRUE, lambda=NULL,
-  nlambda=50,  lambda.min.ratio=1e-4, cv=FALSE, cv.rule=c("min","1se"),penalty.factor=rep(1,nvars),...) {
+  nlambda=50,  lambda.min.ratio=1e-4, cv=FALSE, cv.rule=c("min","1se"),penalty.factor=NULL,...) {
 
   # Check for glmnet
   if (!require("glmnet",quietly=TRUE)) {
@@ -110,7 +110,7 @@ elastic.funs = function(gamma=0.5,family = c("gaussian", "binomial", "poisson", 
     train.fun = function(x,y,out=NULL) {
       return(glmnet(x,y,alpha=gamma,nlambda=nlambda, family=family,
                     lambda.min.ratio=lambda.min.ratio,lambda=lambda,
-                    standardize=standardize,intercept=intercept,penalty.factor = penalty.factor))
+                    standardize=standardize,intercept=intercept,penalty.factor = penalty.factor)))
     }
     
     predict.fun = function(out,newx) {
@@ -144,7 +144,7 @@ elastic.funs = function(gamma=0.5,family = c("gaussian", "binomial", "poisson", 
 #' @export lasso.funs
 
 lasso.funs = function(standardize=TRUE, intercept=TRUE, lambda=NULL,family = c("gaussian", "binomial", "poisson", "multinomial","cox", "mgaussian"), 
-  nlambda=50, lambda.min.ratio=1e-4, cv=FALSE, cv.rule=c("min","1se"),penalty.factor=rep(1,nvars),...) {
+  nlambda=50, lambda.min.ratio=1e-4, cv=FALSE, cv.rule=c("min","1se"),penalty.factor=NULL,...) {
 
   return(elastic.funs(gamma=1, family=family,
                       standardize=standardize,intercept=intercept,
@@ -157,11 +157,11 @@ lasso.funs = function(standardize=TRUE, intercept=TRUE, lambda=NULL,family = c("
 #' @export ridge.funs
 
 ridge.funs = function(standardize=TRUE, intercept=TRUE, lambda=NULL, family = c("gaussian", "binomial", "poisson", "multinomial","cox", "mgaussian"),
-  nlambda=50, lambda.min.ratio=1e-4, cv=FALSE, cv.rule=c("min","1se"),penalty.factor=rep(1,nvars),...) {
+  nlambda=50, lambda.min.ratio=1e-4, cv=FALSE, cv.rule=c("min","1se"),penalty.factor=NULL,...) {
 
   return(elastic.funs(gamma=0,family=family,
                       standardize=standardize,intercept=intercept,
                       lambda=lambda,nlambda=nlambda,
-                      lambda.min.ratio=lambda.min.ratio,penalty.factor=penalty.factor,
+                      lambda.min.ratio=lambda.min.ratio,penalty.factor = penalty.factor,
                       cv=cv,cv.rule=cv.rule))
 }
